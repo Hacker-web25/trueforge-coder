@@ -1,0 +1,190 @@
+{
+  "name": "trueforge-coder",
+  "displayName": "TrueForge Coder",
+  "description": "Editor-native coding agent for VS Code whose agent loop runs on TrueForge (github.com/truefoundry/trueforge).",
+  "version": "0.1.0",
+  "publisher": "forge-a-thon",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test --test-concurrency=1 test/*.test.ts",
+    "package": "npm run build && vsce package --no-dependencies --allow-missing-repository",
+    "setup:trueforge": "node scripts/setup-trueforge.mjs"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "trueforgeCoder.openChat",
+        "title": "TrueForge Coder: Open Agent Panel"
+      },
+      {
+        "command": "trueforgeCoder.inlineEdit",
+        "title": "TrueForge Coder: Inline Edit (selection)"
+      },
+      {
+        "command": "trueforgeCoder.cancel",
+        "title": "TrueForge Coder: Stop Generation"
+      },
+      {
+        "command": "trueforgeCoder.undoLastRun",
+        "title": "TrueForge Coder: Undo Last Agent Changes"
+      },
+      {
+        "command": "trueforgeCoder.connect",
+        "title": "TrueForge Coder: Register Editor Tools in TrueForge"
+      },
+      {
+        "command": "trueforgeCoder.setupNvidia",
+        "title": "TrueForge Coder: Set Up NVIDIA Models (enter API key)"
+      },
+      {
+        "command": "trueforgeCoder.openTrueForge",
+        "title": "TrueForge Coder: Open TrueForge"
+      },
+      {
+        "command": "trueforgeCoder.selectModel",
+        "title": "TrueForge Coder: Choose Model / Fallback Chain"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "trueforgeCoder.inlineEdit",
+        "key": "ctrl+alt+k",
+        "mac": "cmd+alt+k",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "trueforgeCoder.openChat",
+        "key": "ctrl+alt+l",
+        "mac": "cmd+alt+l"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "trueforgeCoder.inlineEdit",
+          "when": "editorHasSelection",
+          "group": "navigation@1"
+        },
+        {
+          "command": "trueforgeCoder.undoLastRun",
+          "when": "editorTextFocus",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "trueforgeCoder",
+          "title": "TrueForge Coder",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "trueforgeCoder": [
+        {
+          "type": "webview",
+          "id": "trueforgeCoder.chat",
+          "name": "Agent"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TrueForge Coder",
+      "properties": {
+        "trueforgeCoder.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:8790",
+          "description": "URL of the local TrueForge server (npx @truefoundry/trueforge)."
+        },
+        "trueforgeCoder.mcpPort": {
+          "type": "number",
+          "default": 8791,
+          "description": "Port of the editor MCP server this extension hosts for TrueForge."
+        },
+        "trueforgeCoder.mcpServerName": {
+          "type": "string",
+          "default": "vscode-editor",
+          "description": "Name of the connector registered in TrueForge for the editor MCP server."
+        },
+        "trueforgeCoder.models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "nvidia/nemotron-3-5-lightning",
+            "nvidia/nemotron-3-ultra"
+          ],
+          "description": "Ordered model chain as TrueForge model names (provider/model). If the first fails, the next is used automatically."
+        },
+        "trueforgeCoder.contextBudgetTokens": {
+          "type": "number",
+          "default": 6000,
+          "description": "Token budget for automatically retrieved code context."
+        },
+        "trueforgeCoder.rollbackOnCancel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Pressing Stop reverts every file the cancelled run already changed, so a cancelled multi-file change is all-or-nothing. Turn off to keep hunks you already approved."
+        },
+        "trueforgeCoder.retries": {
+          "type": "number",
+          "default": 1,
+          "description": "Retries (with exponential backoff) on the same model before falling back to the next one."
+        },
+        "trueforgeCoder.compactionTriggerTokens": {
+          "type": "number",
+          "default": 16000,
+          "description": "TrueForge compacts the agent context once it passes this many input tokens (0 = TrueForge default). Kept low because free-tier models slow down and hit rate limits on long contexts."
+        },
+        "trueforgeCoder.autoApproveCommands": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run the commands the agent asks for (for example pytest) without showing the confirmation dialog. Off by default. Edits to files are never auto-approved: every hunk is still reviewed. You can also click \"Allow all commands this session\" in the dialog."
+        },
+        "trueforgeCoder.commandPreamble": {
+          "type": "string",
+          "default": "",
+          "description": "Prefix for commands the agent runs (after you approve them), for example \". .venv/bin/activate &&\" so pytest and flask come from your virtualenv."
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@truefoundry/trueforge-sdk": "0.185.0",
+    "diff": "^5.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/diff": "^5.2.1",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.24.0",
+    "jsdom": "^31.0.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hacker-web25/trueforge-coder.git"
+  }
+}

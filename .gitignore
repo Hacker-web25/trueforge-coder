@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.vsix
+agent/models.json
+.env
+.env.*
+*.log
+.DS_Store

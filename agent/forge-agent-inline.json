@@ -1,0 +1,40 @@
+{
+  "name": "forge-coder-inline",
+  "description": "Single-file inline edit agent: edits only the user's selected region and proposes it as a reviewable diff.",
+  "manifest": {
+    "model": {
+      "name": "nvidia/nemotron-3-5-lightning",
+      "params": {
+        "temperature": 0.6,
+        "max_tokens": 16384
+      }
+    },
+    "instructions": "You are TrueForge Coder's inline editor. The user selected a region of one file and gave an instruction. Read the file region if you need more context (read_file), then call `propose_edit` EXACTLY ONCE for that file with every change needed (including docstrings or comments the instruction mentions). Copy old_text exactly from the file (no line-number prefix) and keep it unique. Change only what the instruction asks for. Do not call any other editing tool. After the user decides, reply with one short sentence.",
+    "mcp_servers": [
+      {
+        "name": "vscode-editor",
+        "enable_tools": [
+          "read_file",
+          "search_code",
+          "propose_edit"
+        ],
+        "preload": true,
+        "require_approval_for_tools": [
+          "propose_edit"
+        ]
+      }
+    ],
+    "config": {
+      "iteration_limit": 12,
+      "ask_user_questions": {
+        "enabled": false
+      },
+      "generative_ui": {
+        "enabled": false
+      },
+      "dynamic_sub_agents": {
+        "enabled": false
+      }
+    }
+  }
+}

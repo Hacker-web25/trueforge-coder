@@ -1,0 +1,32 @@
+{
+  "_comment": "Copy to models.json (git-ignored) or just use scripts/setup-trueforge.mjs. NEVER commit API keys: the key is read from the NVIDIA_API_KEY environment variable and stored only inside your local TrueForge.",
+  "provider": {
+    "name": "nvidia",
+    "base_url": "https://integrate.api.nvidia.com/v1",
+    "models": [
+      {
+        "name": "nemotron-3-5-lightning",
+        "model_id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "context_length": 1000000,
+        "max_output_tokens": 16384
+      },
+      {
+        "name": "nemotron-3-ultra",
+        "model_id": "nvidia/nemotron-3-ultra-550b-a55b",
+        "context_length": 1000000,
+        "max_output_tokens": 16384
+      },
+      {
+        "name": "llama-3-3-70b",
+        "model_id": "meta/llama-3.3-70b-instruct",
+        "context_length": 131072,
+        "max_output_tokens": 4096
+      }
+    ]
+  },
+  "model_chain": [
+    "nvidia/nemotron-3-5-lightning",
+    "nvidia/nemotron-3-ultra",
+    "nvidia/llama-3-3-70b"
+  ]
+}
